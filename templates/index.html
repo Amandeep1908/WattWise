@@ -1,1 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WattWise - ML Electricity Usage Predictor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-xl w-full bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
+        <h1 class="text-3xl font-bold text-cyan-400 mb-2 text-center">⚡ WattWise</h1>
+        <p class="text-slate-400 text-sm text-center mb-6">ML-Based Electricity Usage & Cost Optimization</p>
 
+        <form id="calcForm" class="space-y-4">
+            <div>
+                <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Household Occupants</label>
+                <input type="number" id="household" value="4" class="w-full bg-slate-700 p-3 rounded-lg text-white border border-slate-600">
+            </div>
+            <div>
+                <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Daily Heavy Appliance Hours</label>
+                <input type="number" id="hours" value="8" step="0.5" class="w-full bg-slate-700 p-3 rounded-lg text-white border border-slate-600">
+            </div>
+            <div>
+                <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Outdoor Temp (°C)</label>
+                <input type="number" id="temp" value="32" class="w-full bg-slate-700 p-3 rounded-lg text-white border border-slate-600">
+            </div>
+            <div>
+                <label class="block text-xs uppercase text-slate-400 font-bold mb-1">Tariff Rate (₹ / kWh)</label>
+                <input type="number" id="tariff" value="7.5" step="0.1" class="w-full bg-slate-700 p-3 rounded-lg text-white border border-slate-600">
+            </div>
+            <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-600 font-bold py-3 rounded-lg transition">Predict & Estimate Bill</button>
+        </form>
+
+        <div id="results" class="mt-6 hidden bg-slate-900 p-5 rounded-xl border border-cyan-500/30 space-y-3">
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+                <span class="text-slate-400">Monthly Usage:</span>
+                <span id="monthlyKwh" class="font-bold text-cyan-400"></span>
+            </div>
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+                <span class="text-slate-400">Projected Bill:</span>
+                <span id="bill" class="font-bold text-emerald-400"></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-slate-400">Carbon Footprint:</span>
+                <span id="co2" class="font-bold text-amber-400"></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('calcForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    household: document.getElementById('household').value,
+                    hours: document.getElementById('hours').value,
+                    temp: document.getElementById('temp').value,
+                    tariff: document.getElementById('tariff').value
+                })
+            });
+            const data = await res.json();
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('monthlyKwh').innerText = data.monthly_kwh + ' kWh';
+            document.getElementById('bill').innerText = '₹ ' + data.estimated_bill;
+            document.getElementById('co2').innerText = data.co2_footprint + ' kg CO2';
+        });
+    </script>
+</body>
+</html>
